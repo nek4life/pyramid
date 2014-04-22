@@ -8,6 +8,12 @@ import os.path
 import pkg_resources
 import re
 import sys
+import shutil
+
+try:
+    input = raw_input
+except NameError:
+    pass
 
 _bad_chars_re = re.compile('[^a-zA-Z0-9_]')
 
@@ -69,6 +75,20 @@ class PCreateCommand(object):
         if not self.args:
             self.out('You must provide a project name')
             return 2
+        if os.path.exists(os.path.abspath(os.path.normpath(self.args[0]))):
+            question = 'Project directory already exists, overwrite directory? [y/n]'
+            acceptable_answers = ['y', 'n']
+            answer = ''
+
+            while answer not in acceptable_answers:
+                answer = input(question)
+
+            if answer == 'y':
+                shutil.rmtree(os.path.abspath(os.path.normpath(self.args[0])))
+            elif answer == 'n':
+                self.out('Please specify another project name and run pcreate again')
+                return 2
+
         available = [x.name for x in self.scaffolds]
         diff = set(self.options.scaffold_name).difference(available)
         if diff:
